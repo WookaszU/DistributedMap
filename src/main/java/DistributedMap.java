@@ -5,7 +5,6 @@ import org.jgroups.stack.ProtocolStack;
 import org.jgroups.util.Util;
 import protos.MapValueProtos;
 import java.io.*;
-import java.net.InetAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,7 +15,7 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
     private String name = "synchro";
 
 
-    private static final Map<String, String> data = new ConcurrentHashMap<String, String>();
+    private Map<String, String> data = new ConcurrentHashMap<String, String>();
 
     public boolean containsKey(String key) {
 
@@ -36,15 +35,21 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
 
     public String put(String key, String value) {
         synchronized(data) {
-            data.put(key, value);
-            try {
-                sendMessage(MapValueProtos.MapValue.MessageType.PUT, key, value);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Value not putted. Error while sending update.");
-                data.remove(key);
+            if(!data.containsKey(key)){
+                data.put(key, value);
+                try {
+                    sendMessage(MapValueProtos.MapValue.MessageType.PUT, key, value);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Value not putted. Error while sending update.");
+                    data.remove(key);
+                }
+                return value;
             }
-            return null;
+            else{
+                System.out.println("This key exists in map!");
+                return null;
+            }
         }
     }
 
@@ -58,6 +63,8 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
                     sendMessage(MapValueProtos.MapValue.MessageType.REMOVE, key, elem);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.out.println("Value not deleted. Error while sending update.");
+                    data.put(key, elem);
                 }
             }
             else{
@@ -99,7 +106,7 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
         channel = new JChannel(false);
         ProtocolStack stack = new ProtocolStack();
         channel.setProtocolStack(stack);
-        stack.addProtocol(new UDP().setValue("mcast_group_addr", InetAddress.getByName("230.0.0.100")))
+        stack.addProtocol(new UDP())//.setValue("mcast_group_addr", InetAddress.getByName("230.0.0.100")))
                 .addProtocol(new PING())
                 .addProtocol(new MERGE3())
                 .addProtocol(new FD_SOCK())
@@ -239,6 +246,7 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
 
 
     private void start() throws Exception{
+
         joinChannel();
         eventLoop();
         channel.close();
@@ -247,6 +255,7 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
 
 
     public static void main(String[] args) throws Exception{
+        System.setProperty("java.net.preferIPv4Stack", "true");
         new DistributedMap().start();
     }
 
