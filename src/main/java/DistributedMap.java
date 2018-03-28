@@ -5,6 +5,7 @@ import org.jgroups.stack.ProtocolStack;
 import org.jgroups.util.Util;
 import protos.MapValueProtos;
 import java.io.*;
+import java.net.InetAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,10 +13,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
 
     private JChannel channel;
-    private String name = "synchro";
+    private String name;
 
 
     private Map<String, String> data = new ConcurrentHashMap<String, String>();
+
+
+    public DistributedMap(String name) {
+        this.name = name;
+    }
 
     public boolean containsKey(String key) {
 
@@ -100,13 +106,13 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
     }
 
 
-    private void joinChannel() throws Exception {
+    public void joinChannel() throws Exception {
 
 
         channel = new JChannel(false);
         ProtocolStack stack = new ProtocolStack();
         channel.setProtocolStack(stack);
-        stack.addProtocol(new UDP())//.setValue("mcast_group_addr", InetAddress.getByName("230.0.0.100")))
+        stack.addProtocol(new UDP().setValue("mcast_group_addr", InetAddress.getByName("230.0.0.100")))
                 .addProtocol(new PING())
                 .addProtocol(new MERGE3())
                 .addProtocol(new FD_SOCK())
@@ -131,6 +137,11 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
         channel.connect(name);
         channel.getState(null, 0);  // no timeout
 
+    }
+
+
+    public void closeChannel(){
+        channel.close();
     }
 
 
@@ -186,77 +197,13 @@ public class DistributedMap extends ReceiverAdapter implements SimpleStringMap {
     }
 
 
-
-    private void printContent(){
+    public void printContent(){
         synchronized(data) {
             System.out.println("Map contains: ");
             for(String key: data.keySet()){
                 System.out.println(key + "  " + data.get(key));
             }
         }
-    }
-
-
-    private void eventLoop() {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        while(true) {
-            try {
-                System.out.print("> "); System.out.flush();
-                String line = in.readLine().toLowerCase();
-                if(line.startsWith("quit") || line.startsWith("exit")) {
-                    break;
-                }
-
-                String[] tokens = line.split(" ");
-
-                String key;
-                String value;
-
-                if(tokens[0].equals("put")){
-                    key = tokens[1];
-                    value = tokens[2];
-                    put(key, value);
-                    //System.out.println("Putted");
-                }
-                else if(tokens[0].equals("remove")){
-                    key = tokens[1];
-                    System.out.println("Removed from map: " + remove(key));
-                }
-                else if(tokens[0].equals("get")){
-                    key = tokens[1];
-                    System.out.println("Got from map: " + get(key));
-                }
-                else if(tokens[0].equals("contains")){
-                    key = tokens[1];
-                    System.out.println("Containing " + key + " : " + containsKey(key));
-                }
-                else if(tokens[0].equals("show")){
-                    printContent();
-                }
-                else{
-                    System.out.println("Wrong command!");
-                }
-
-            }
-            catch(IOException e) {
-                System.out.println("Error while reading input from console.");
-            }
-        }
-    }
-
-
-    private void start() throws Exception{
-
-        joinChannel();
-        eventLoop();
-        channel.close();
-
-    }
-
-
-    public static void main(String[] args) throws Exception{
-        System.setProperty("java.net.preferIPv4Stack", "true");
-        new DistributedMap().start();
     }
 
 }
