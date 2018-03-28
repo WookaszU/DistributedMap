@@ -53,32 +53,20 @@ public final class MapValueProtos {
     
     public enum MessageType
         implements com.google.protobuf.ProtocolMessageEnum {
-      UPDATE(0, 0),
-      REPLY(1, 1),
-      PUT(2, 2),
-      GET(3, 3),
-      REMOVE(4, 4),
-      CONTAINS(5, 5),
+      PUT(0, 1),
+      REMOVE(1, 2),
       ;
       
-      public static final int UPDATE_VALUE = 0;
-      public static final int REPLY_VALUE = 1;
-      public static final int PUT_VALUE = 2;
-      public static final int GET_VALUE = 3;
-      public static final int REMOVE_VALUE = 4;
-      public static final int CONTAINS_VALUE = 5;
+      public static final int PUT_VALUE = 1;
+      public static final int REMOVE_VALUE = 2;
       
       
       public final int getNumber() { return value; }
       
       public static MessageType valueOf(int value) {
         switch (value) {
-          case 0: return UPDATE;
-          case 1: return REPLY;
-          case 2: return PUT;
-          case 3: return GET;
-          case 4: return REMOVE;
-          case 5: return CONTAINS;
+          case 1: return PUT;
+          case 2: return REMOVE;
           default: return null;
         }
       }
@@ -109,7 +97,7 @@ public final class MapValueProtos {
       }
       
       private static final MessageType[] VALUES = {
-        UPDATE, REPLY, PUT, GET, REMOVE, CONTAINS, 
+        PUT, REMOVE, 
       };
       
       public static MessageType valueOf(
@@ -208,7 +196,7 @@ public final class MapValueProtos {
     }
     
     private void initFields() {
-      msgType_ = MessageType.UPDATE;
+      msgType_ = MessageType.PUT;
       key_ = "";
       value_ = "";
     }
@@ -390,7 +378,7 @@ public final class MapValueProtos {
       
       public Builder clear() {
         super.clear();
-        msgType_ = MessageType.UPDATE;
+        msgType_ = MessageType.PUT;
         bitField0_ = (bitField0_ & ~0x00000001);
         key_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -542,7 +530,7 @@ public final class MapValueProtos {
       private int bitField0_;
       
       // required .MapValue.MessageType msgType = 1;
-      private MessageType msgType_ = MessageType.UPDATE;
+      private MessageType msgType_ = MessageType.PUT;
       public boolean hasMsgType() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
@@ -560,7 +548,7 @@ public final class MapValueProtos {
       }
       public Builder clearMsgType() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        msgType_ = MessageType.UPDATE;
+        msgType_ = MessageType.PUT;
         onChanged();
         return this;
       }
@@ -662,12 +650,10 @@ public final class MapValueProtos {
       descriptor;
   static {
     String[] descriptorData = {
-      "\n\016mapvalue.proto\"\240\001\n\010MapValue\022&\n\007msgType" +
-      "\030\001 \002(\0162\025.MapValue.MessageType\022\013\n\003key\030\002 \002" +
-      "(\t\022\r\n\005value\030\003 \002(\t\"P\n\013MessageType\022\n\n\006UPDA" +
-      "TE\020\000\022\t\n\005REPLY\020\001\022\007\n\003PUT\020\002\022\007\n\003GET\020\003\022\n\n\006REM" +
-      "OVE\020\004\022\014\n\010CONTAINS\020\005B\030\n\006protosB\016MapValueP" +
-      "rotos"
+      "\n\016mapvalue.proto\"r\n\010MapValue\022&\n\007msgType\030" +
+      "\001 \002(\0162\025.MapValue.MessageType\022\013\n\003key\030\002 \002(" +
+      "\t\022\r\n\005value\030\003 \002(\t\"\"\n\013MessageType\022\007\n\003PUT\020\001" +
+      "\022\n\n\006REMOVE\020\002B\030\n\006protosB\016MapValueProtos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
